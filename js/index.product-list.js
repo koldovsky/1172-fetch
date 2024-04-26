@@ -1,35 +1,12 @@
-const products = [
-    {
-        id: '1',
-        title: 'Baby Yoda',
-        description: 'Bring home the mystique of the galaxy with this charming Baby Yoda figurine, perfect for fans of all ages. Crafted with attention to detail, this collectible embodies the beloved character’s wisdom and cuteness.',
-        price: 9.99,
-        image: 'img/baby-yoda.svg'
-    },
-    {
-        id: '2',
-        title: 'Banana',
-        description: 'This vibrant, peel-and-play toy banana is made from durable, child-safe materials. It offers a fun way for kids to learn about fruits and healthy eating habits through imaginative play.',
-        price: 12.99,
-        image: 'img/banana.svg'
-    },
-    {
-        id: '3',
-        title: 'Girl',
-        description: 'Meet Emma, a friendly doll with a love for adventures. Emma comes dressed in a pretty pink dress and features yarn hair and a sweet embroidered face, making her the perfect companion for your child.',
-        price: 11.99,
-        image: 'img/girl.svg'
-    },
-    {
-        id: '4',
-        title: 'Viking',
-        description: 'Embark on epic journeys with this rugged Viking figurine. Featuring historically inspired armor and accessories, this toy is ideal for educational play or as a unique addition to any collector’s shelf.',
-        price: 12.99,
-        image: 'img/viking.svg'
-    },
-];
+const response = await fetch('api/products.json');
+const products = await response.json();
+renderProducts(products);
 
-function renderProducts(products) {
+// fetch('api/products.json')
+//    .then( response => response.json() )
+//    .then( products => renderProducts(products));
+
+function renderProducts(products, rate = 1) {
     let productsHtml = '';
     for (const product of products) {
         productsHtml += `<article class="product-card">
@@ -42,7 +19,7 @@ function renderProducts(products) {
         Info
         </button>
         <button class="product-card__buttons-buy button button-card">
-        Buy - ${product.price}
+        Buy - ${(product.price * rate).toFixed(2)}
         </button>
         </div>
         </article>`;
@@ -50,4 +27,29 @@ function renderProducts(products) {
     document.querySelector('.products__list').innerHTML = productsHtml;
 }
 
-renderProducts(products);
+let currencies;
+async function changeCurrency() {
+    const newCurrency = document.querySelector('.products__currency').value;
+    if (!currencies) {
+        const response = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
+        currencies = await response.json();
+    }
+    const rate = currencies.rates[newCurrency];
+    renderProducts(products, rate);
+}
+
+// let currencies;
+// let lastRefresh = new Date();
+// async function changeCurrency() {
+//     const refreshTimeoutMSECS = 3600 * 1000;
+//     const newCurrency = document.querySelector('.products__currency').value;
+//     if (!currencies || (new Date() - lastRefresh > refreshTimeoutMSECS) ) {
+//         const response = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
+//         currencies = await response.json();
+//         lastRefresh = new Date();
+//     }
+//     const rate = currencies.rates[newCurrency];
+//     renderProducts(products, rate);
+// }
+
+document.querySelector('.products__currency').addEventListener('change', changeCurrency);
